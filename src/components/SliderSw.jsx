@@ -23,7 +23,6 @@ function SliderSw() {
       let listings = [];
 
       querySnap.forEach((doc) => {
-        console.log(doc.id);
         listings.push({
           id: doc.id,
           data: doc.data(),
@@ -38,6 +37,10 @@ function SliderSw() {
 
   if (loading) {
     return <Spinner />;
+  }
+
+  if (listings.length === 0) {
+    return <></>;
   }
 
   if (listings.length === 0) {

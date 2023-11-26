@@ -17,6 +17,7 @@ import ListingItem from "../components/ListingItem";
 function Category() {
   const [listings, setListings] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [lastFetchListing, setLastFetchListing] = useState(null);
 
   const params = useParams();
 
@@ -37,6 +38,9 @@ function Category() {
         //Execute query
         const querySnap = await getDocs(q);
 
+        const lastVisible = querySnap.docs[querySnap.docs.length - 1];
+        setLastFetchListing(lastVisible);
+
         const listings = [];
         querySnap.forEach((doc) => {
           return listings.push({
@@ -55,6 +59,43 @@ function Category() {
 
     fetchListings();
   }, [params.categoryName]);
+
+  //Pagination - Fetch more listings
+  const onFetchMoreListings = async () => {
+    try {
+      //Get reference
+      const listingsRef = collection(db, "listings");
+
+      //Create a query
+      const q = query(
+        listingsRef,
+        where("type", "==", params.categoryName),
+        orderBy("timestamp", "desc"),
+        startAfter(lastFetchListing),
+        limit(10)
+      );
+
+      //Execute query
+      const querySnap = await getDocs(q);
+
+      const lastVisible = querySnap.docs[querySnap.docs.length - 1];
+      setLastFetchListing(lastVisible);
+
+      const listings = [];
+      querySnap.forEach((doc) => {
+        return listings.push({
+          id: doc.id,
+          data: doc.data(),
+        });
+      });
+
+      setListings((prevState) => [...prevState, ...listings]);
+      setLoading(false);
+    } catch (error) {
+      console.log("Could not fetch listings");
+      toast.error("Failed to fetch listings.");
+    }
+  };
 
   return (
     <div className="category">
@@ -81,6 +122,15 @@ function Category() {
               ))}
             </ul>
           </main>
+
+          <br />
+          <br />
+
+          {lastFetchListing && (
+            <p className="loadMore" onClick={onFetchMoreListings}>
+              Load More
+            </p>
+          )}
         </>
       ) : (
         <p>No listings for {params.categoryName}</p>

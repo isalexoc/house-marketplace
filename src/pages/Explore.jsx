@@ -32,6 +32,11 @@ function Explore() {
           </Link>
         </div>
       </main>
+      <br />
+      <br />
+      <br />
+      <br />
+      <br />
     </div>
   );
 }
